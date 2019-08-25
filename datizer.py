@@ -1,13 +1,25 @@
+import argparse
 import os
 import shutil
 
 import exifread
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Datizer photo catalog creator')
+    parser.add_argument('-s', '--source', type=str, help='Enter source folder path')
+    parser.add_argument('-d', '--destination', type=str, default=None, help='Enter output folder path')
+    args = parser.parse_args()
+    return args
+
+
 class datizer():
     def __init__(self, folder_path, output_path):
         self.folder_path = folder_path
-        self.output_path = output_path
+        if output_path is None:
+            self.output_path = folder_path
+        else:
+            self.output_path = output_path
 
     def get_images_in_folder(self, filter_with_suffix=True, suffix=None):
         if suffix is None:
@@ -25,8 +37,7 @@ class datizer():
 
     @staticmethod
     def get_exif_data(img_path):
-        """Returns a dictionary from the exif data of an PIL Image item. Also
-        converts the GPS Tags"""
+        """Returns a dictionary from the exif data of an PIL Image item"""
         f = open(img_path, 'rb')
         exif_data = exifread.process_file(f)
         return exif_data
@@ -45,7 +56,6 @@ class datizer():
             return date_time_components[2] + '.' + date_time_components[1] + '.' + date_time_components[0]
 
     def create_folder(self, directory_name):
-        print(directory_name)
         if not os.path.exists(directory_name):
             os.mkdir(directory_name)
             print("Directory ", directory_name, " Created ")
@@ -69,3 +79,9 @@ class datizer():
             folder_path = self.output_path + folder_name
             self.create_folder(folder_path)
             self.move_image_to_folder(img, folder_path)
+
+
+if __name__ == '__main__':
+    args = parse_arguments()
+    app = datizer(args.source, args.destination)
+    app.process_files()
