@@ -1,2 +1,3 @@
 # datizer
-Organize your photos in folder date
+Organize your photos by their date.
+In progress.
