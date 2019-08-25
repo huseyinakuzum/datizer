@@ -7,28 +7,30 @@ import exifread
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Datizer photo catalog creator')
-    parser.add_argument('-s', '--source', type=str, help='Enter source folder path')
+    parser.add_argument('-s', '--source', type=str, default=os.getcwd(), help='Enter source folder path')
     parser.add_argument('-d', '--destination', type=str, default=None, help='Enter output folder path')
+    parser.add_argument('-e', '--suffix_list', nargs="*", default=['CR2', 'JPEG', 'JPG'])
     args = parser.parse_args()
     return args
 
 
 class datizer():
-    def __init__(self, folder_path, output_path):
+    def __init__(self, folder_path, output_path, suffix_list):
         self.folder_path = folder_path
         if output_path is None:
             self.output_path = folder_path
         else:
             self.output_path = output_path
+        self.suffix_list = suffix_list
 
-    def get_images_in_folder(self, filter_with_suffix=True, suffix=None):
-        if suffix is None:
-            suffix = ['CR2']
+    def get_images_in_folder(self, filter_with_suffix=True):
+        if self.suffix_list is None:
+            self.suffix_list = ['CR2']
         files = []
         for r, d, f in os.walk(self.folder_path):
             for file in f:
                 if filter_with_suffix:
-                    for s in suffix:
+                    for s in self.suffix_list:
                         if s in file:
                             files.append(os.path.join(r, file))
                 else:
@@ -83,5 +85,5 @@ class datizer():
 
 if __name__ == '__main__':
     args = parse_arguments()
-    app = datizer(args.source, args.destination)
+    app = datizer(args.source, args.destination, args.suffix_list)
     app.process_files()
