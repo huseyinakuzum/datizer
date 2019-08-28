@@ -39,15 +39,21 @@ class datizer():
 
     @staticmethod
     def get_exif_data(img_path):
-        f = open(img_path, 'rb')
-        exif_data = exifread.process_file(f)
-        return exif_data
+        if not img_path.split('/')[-1][0] == '.':
+            f = open(img_path, 'rb')
+            exif_data = exifread.process_file(f)
+            return exif_data
+        else:
+            return None
 
     def get_date_time(self, img_path):
         exif_data = self.get_exif_data(img_path)
-        if 'EXIF DateTimeOriginal' in exif_data:
-            date_and_time = exif_data['EXIF DateTimeOriginal']
-            return date_and_time
+        if exif_data is not None:
+            if 'EXIF DateTimeOriginal' in exif_data:
+                date_and_time = exif_data['EXIF DateTimeOriginal']
+                return date_and_time
+        else:
+            return None
 
     @staticmethod
     def get_folder_name(date):
@@ -89,14 +95,17 @@ class datizer():
         images = self.get_images_in_folder()
         for img in images:
             date_time = self.get_date_time(img)
-            folder_name = self.get_folder_name(date_time)
-            if self.output_path[-1] == '/':
-                folder_path = self.output_path + folder_name
+            if date_time is None:
+                pass
             else:
-                folder_path = self.output_path + '/' + folder_name
+                folder_name = self.get_folder_name(date_time)
+                if self.output_path[-1] == '/':
+                    folder_path = self.output_path + folder_name
+                else:
+                    folder_path = self.output_path + '/' + folder_name
 
-            self.create_folder(folder_path)
-            self.move_image_to_folder(img, folder_path)
+                self.create_folder(folder_path)
+                self.move_image_to_folder(img, folder_path)
 
 
 if __name__ == '__main__':
