@@ -39,11 +39,9 @@ class datizer():
 
     @staticmethod
     def get_exif_data(img_path):
-        """Returns a dictionary from the exif data of an PIL Image item"""
         f = open(img_path, 'rb')
         exif_data = exifread.process_file(f)
         return exif_data
-        # return exif_data
 
     def get_date_time(self, img_path):
         exif_data = self.get_exif_data(img_path)
@@ -55,30 +53,48 @@ class datizer():
     def get_folder_name(date):
         if date:
             date_time_components = str(date).split(' ')[0].split(':')
-            return date_time_components[2] + '.' + date_time_components[1] + '.' + date_time_components[0]
-
-    def create_folder(self, directory_name):
-        if not os.path.exists(directory_name):
-            os.mkdir(directory_name)
-            print("Directory ", directory_name, " Created ")
-        else:
-            print("Directory ", directory_name, " already exists")
+            return date_time_components[0] + '-' + date_time_components[1] + '-' + date_time_components[2]
 
     @staticmethod
-    def move_image_to_folder(img, destination_folder):
+    def create_folder(directory_name):
+        if not os.path.exists(directory_name):
+            os.mkdir(directory_name)
+            print("Directory ", directory_name.split('/')[-1], " Created ")
+
+    def move_image_to_folder(self, img, destination_folder):
         if os.path.isfile(img) and os.path.isdir(destination_folder):
-            shutil.move(img, destination_folder)
-            print(img.split('/')[-1] + " is moved to " + destination_folder)
+            if os.path.exists(destination_folder + '/' + img.split('/')[-1]):
+                self.rename_image_and_move(img, destination_folder)
+            else:
+                shutil.move(img, destination_folder)
+                print(img.split('/')[-1] + " is moved to " + destination_folder.split('/')[-1] + " folder.")
 
         else:
             print("Given image or destination folder is not pointing to correct path.")
+
+    def rename_image_and_move(self, img, destination_folder, index=2):
+        img_name = img.split('/')[-1]
+        img_folder = img.split(img_name)[0]
+        new_path = destination_folder + '/' + img_name.split('.')[0] + '_' + str(index) + '.' + img_name.split('.')[1]
+        if os.path.isfile(new_path):
+            self.rename_image_and_move(img, destination_folder, index + 1)
+        else:
+            new_img = img_folder + img_name.split('.')[0] + '_' + str(index) + '.' + img_name.split('.')[1]
+            print(img.split('/')[-1] + " is renamed to " + new_img.split('/')[-1] + ".")
+            print(new_img.split('/')[-1] + " is moved to " + destination_folder.split('/')[-1] + " folder.")
+            os.rename(img, new_img)
+            shutil.move(new_img, destination_folder)
 
     def process_files(self):
         images = self.get_images_in_folder()
         for img in images:
             date_time = self.get_date_time(img)
             folder_name = self.get_folder_name(date_time)
-            folder_path = self.output_path + folder_name
+            if self.output_path[-1] == '/':
+                folder_path = self.output_path + folder_name
+            else:
+                folder_path = self.output_path + '/' + folder_name
+
             self.create_folder(folder_path)
             self.move_image_to_folder(img, folder_path)
 
